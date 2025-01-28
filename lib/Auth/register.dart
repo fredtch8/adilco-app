@@ -1,4 +1,6 @@
+import 'package:adilco/API/apiHandler.dart';
 import 'package:adilco/Auth/login.dart';
+import 'package:adilco/Models/Users.dart';
 import 'package:flutter/material.dart';
 
 class Register extends StatefulWidget {
@@ -27,6 +29,47 @@ class _RegisterState extends State<Register> {
   String? _usernameError;
   String? _passwordError;
   String? _confirmPassError;
+
+  ApiHandler apihandler = ApiHandler();
+
+  void registerUser() async {
+    final user = Users(
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+      email: _emailController.text.trim(),
+      phone: _phoneController.text.trim(),
+      username: _usernameController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    try {
+      await apihandler.registerUser(user);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User registered successfully!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      await Future.delayed(const Duration(seconds: 2));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Login()),
+      );
+    } catch (error) {
+      // Handle errors from the API
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Registration failed: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -178,6 +221,7 @@ class _RegisterState extends State<Register> {
                             _confirmPassError = 'Passwords do not match';
                           } else {
                             //register user
+                            registerUser();
                           }
                         }
                       });

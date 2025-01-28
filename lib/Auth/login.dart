@@ -1,5 +1,6 @@
 import 'package:adilco/Auth/forgotPass.dart';
 import 'package:adilco/Auth/register.dart';
+import 'package:adilco/Main/home.dart';
 import 'package:flutter/material.dart';
 
 class Login extends StatefulWidget {
@@ -173,6 +174,12 @@ class _LoginState extends State<Login> {
                         if (_usernameErrorMsg == null &&
                             _passwordErrorMsg == null) {
                           //logiin operation api call
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const Home(),
+                            ),
+                          );
                         }
                       });
                     },
