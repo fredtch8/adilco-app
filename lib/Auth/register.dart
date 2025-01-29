@@ -42,11 +42,11 @@ class _RegisterState extends State<Register> {
       password: _passwordController.text.trim(),
     );
 
-    try {
-      await apihandler.registerUser(user);
+    final response = await apihandler.registerUser(user);
 
+    if (response.statusCode == 200) {
+      // Success
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('User registered successfully!'),
@@ -60,11 +60,11 @@ class _RegisterState extends State<Register> {
         context,
         MaterialPageRoute(builder: (context) => const Login()),
       );
-    } catch (error) {
-      // Handle errors from the API
+    } else {
+      // Failure
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Registration failed: $error'),
+          content: Text('Registration failed: ${response.body}'),
           backgroundColor: Colors.red,
         ),
       );

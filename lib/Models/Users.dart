@@ -26,7 +26,7 @@ class Users {
       firstName: json['FIRST_NAME'],
       lastName: json['LAST_NAME'],
       email: json['EMAIL'],
-      phone: json['PHONE'],
+      phone: json['PHONE_NUMBER'],
       username: json['USERNAME'],
       password: json['PASSWORD']);
 
@@ -34,7 +34,7 @@ class Users {
         "FIRST_NAME": firstName,
         "LAST_NAME": lastName,
         "EMAIL": email,
-        "PHONE": phone,
+        "PHONE_NUMBER": phone,
         "USERNAME": username,
         "PASSWORD": password,
       };
