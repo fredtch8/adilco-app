@@ -21,7 +21,6 @@ class ApiHandler {
       return http.Response('Error: $e', 500);
     }
 
-    return response ??
-        http.Response('Failed to register', 500); // Default failure message
+    return response;
   }
 }
