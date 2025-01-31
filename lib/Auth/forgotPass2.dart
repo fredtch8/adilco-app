@@ -1,11 +1,17 @@
+import 'dart:convert';
+
+import 'package:adilco/API/apiHandler.dart';
+import 'package:adilco/Auth/login.dart';
 import 'package:flutter/material.dart';
 
 class forgotPass2 extends StatefulWidget {
   final String emailOrPhone;
+  final int userId;
 
   const forgotPass2({
     super.key,
     required this.emailOrPhone,
+    required this.userId,
   });
 
   @override
@@ -24,6 +30,53 @@ class _forgotPass2State extends State<forgotPass2> {
   String? OTPerrorMsg;
   String? NewPassErrorMsg;
   String? ConfirmNewPassErrorMsg;
+
+  ApiHandler apihandler = ApiHandler();
+
+  void checkOTPValidity() async {
+    final response = await apihandler.checkOTPResetPass(
+        widget.userId,
+        int.parse(_otpController.text.trim()),
+        _newPasswordController.text.trim(),
+        _confirmPasswordController.text.trim());
+
+    // Decode the response and get the message
+    var data = jsonDecode(response.body);
+    String message = data["message"];
+
+    if (response.statusCode == 200) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Login()),
+      );
+      // Show the message in a Snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } else if (response.statusCode == 400) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => Login()));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Retry updating password'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -216,6 +269,7 @@ class _forgotPass2State extends State<forgotPass2> {
                             // Call API to reset password with the data passed
                             // API call using widget.username, widget.emailOrPhone, and new password
                             // Handle response accordingly
+                            checkOTPValidity();
                           }
                         }
                       });
