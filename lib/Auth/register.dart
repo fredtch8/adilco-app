@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:adilco/API/apiHandler.dart';
 import 'package:adilco/Auth/login.dart';
 import 'package:adilco/Models/Users.dart';
+import 'package:adilco/loading.dart';
 import 'package:flutter/material.dart';
 
 class Register extends StatefulWidget {
@@ -30,250 +33,302 @@ class _RegisterState extends State<Register> {
   String? _passwordError;
   String? _confirmPassError;
 
+  bool isLoading = false;
+
   ApiHandler apihandler = ApiHandler();
 
   void registerUser() async {
-    final user = Users(
-      firstName: _firstNameController.text.trim(),
-      lastName: _lastNameController.text.trim(),
-      email: _emailController.text.trim(),
-      phone: _phoneController.text.trim(),
-      username: _usernameController.text.trim(),
-      password: _passwordController.text.trim(),
-    );
+    setState(() {
+      isLoading = true; // Show loading indicator
+    });
 
-    final response = await apihandler.registerUser(user);
-
-    if (response.statusCode == 200) {
-      // Success
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User registered successfully!'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
+    try {
+      final user = Users(
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
+        username: _usernameController.text.trim(),
+        password: _passwordController.text.trim(),
       );
 
-      await Future.delayed(const Duration(seconds: 2));
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Login()),
-      );
-    } else {
-      // Failure
+      final response = await apihandler.registerUser(user);
+
+      if (response.statusCode == 200) {
+        // Success
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User registered successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 2));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Login()),
+        );
+      } else {
+        // Failure - Handle specific errors based on the status code
+        final responseData = jsonDecode(response.body);
+
+        String errorMessage = "Registration failed";
+        if (responseData.containsKey('errors')) {
+          errorMessage = (responseData['errors'] as List).join("\n");
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Handle unexpected errors like network issues or other exceptions
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Registration failed: ${response.body}'),
+          content: Text('An error occurred: $e'),
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      setState(() {
+        isLoading = false; // Hide loading indicator
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Register',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.red[600],
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: Container(
-        height: MediaQuery.of(context).size.height, // Full screen height
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFFCE4EC),
-              Color(0xFFF8BBD0),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+        appBar: AppBar(
+          title: const Text(
+            'Register',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
+          backgroundColor: Colors.red[600],
+          foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
         ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 50),
-                const CircleAvatar(
-                  backgroundImage: AssetImage('images/adilco-logo.jpg'),
-                  radius: 50,
+        body: Stack(
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height, // Full screen height
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFFFCE4EC),
+                    Color(0xFFF8BBD0),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-                const SizedBox(height: 40),
-                const Text(
-                  'Create an Account',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Please fill in the details below',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                  ),
-                ),
-                const SizedBox(height: 30),
-                _buildTextField(
-                    label: 'First Name',
-                    myController: _firstNameController,
-                    errorText: _firstNameError),
-                const SizedBox(height: 20),
-                _buildTextField(
-                    label: 'Last Name',
-                    myController: _lastNameController,
-                    errorText: _lastNameError),
-                const SizedBox(height: 20),
-                _buildTextField(
-                    label: 'Email',
-                    myController: _emailController,
-                    errorText: _emailError),
-                const SizedBox(height: 20),
-                _buildTextField(
-                    label: 'Phone',
-                    myController: _phoneController,
-                    errorText: _phoneError),
-                const SizedBox(height: 20),
-                _buildTextField(
-                    label: 'Username',
-                    myController: _usernameController,
-                    errorText: _usernameError),
-                const SizedBox(height: 20),
-                _buildPasswordField(
-                    myController: _passwordController,
-                    errorText: _passwordError,
-                    label: 'Password',
-                    isPasswordVisible: _isPasswordVisible,
-                    onToggle: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    }),
-                const SizedBox(height: 20),
-                _buildPasswordField(
-                    myController: _confirmPassController,
-                    errorText: _confirmPassError,
-                    label: 'Confirm Password',
-                    isPasswordVisible: _isConfirmPasswordVisible,
-                    onToggle: () {
-                      setState(() {
-                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                      });
-                    }),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _firstNameError = null;
-                        _lastNameError = null;
-                        _emailError = null;
-                        _phoneError = null;
-                        _usernameError = null;
-                        _passwordError = null;
-                        _confirmPassError = null;
-
-                        if (_firstNameController.text.trim().isEmpty) {
-                          _firstNameError = 'First name is required';
-                        }
-                        if (_lastNameController.text.trim().isEmpty) {
-                          _lastNameError = 'Last name is required';
-                        }
-                        if (_emailController.text.trim().isEmpty) {
-                          _emailError = 'Email is required';
-                        }
-                        if (_phoneController.text.trim().isEmpty) {
-                          _phoneError = 'Phone is required';
-                        }
-                        if (_usernameController.text.trim().isEmpty) {
-                          _usernameError = 'Username is required';
-                        }
-                        if (_passwordController.text.trim().isEmpty) {
-                          _passwordError = 'Password is required';
-                        }
-                        if (_confirmPassController.text.trim().isEmpty) {
-                          _confirmPassError = 'Confirm Password is required';
-                        }
-
-                        if (_firstNameError == null &&
-                            _lastNameError == null &&
-                            _emailError == null &&
-                            _phoneError == null &&
-                            _usernameError == null &&
-                            _passwordError == null &&
-                            _confirmPassError == null) {
-                          if (_passwordController.text.trim() !=
-                              _confirmPassController.text.trim()) {
-                            _confirmPassError = 'Passwords do not match';
-                          } else {
-                            //register user
-                            registerUser();
-                          }
-                        }
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 50),
+                      const CircleAvatar(
+                        backgroundImage: AssetImage('images/adilco-logo.jpg'),
+                        radius: 50,
                       ),
-                      elevation: 5,
-                    ),
-                    child: const Text(
-                      'Register',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Already have an account? ",
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const Login()),
-                        );
-                      },
-                      child: const Text(
-                        'Login',
+                      const SizedBox(height: 40),
+                      const Text(
+                        'Create an Account',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.red,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Please fill in the details below',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      _buildTextField(
+                          label: 'First Name',
+                          myController: _firstNameController,
+                          errorText: _firstNameError),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                          label: 'Last Name',
+                          myController: _lastNameController,
+                          errorText: _lastNameError),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                          label: 'Email',
+                          myController: _emailController,
+                          errorText: _emailError),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                          label: 'Phone',
+                          myController: _phoneController,
+                          errorText: _phoneError),
+                      const SizedBox(height: 20),
+                      _buildTextField(
+                          label: 'Username',
+                          myController: _usernameController,
+                          errorText: _usernameError),
+                      const SizedBox(height: 20),
+                      _buildPasswordField(
+                          myController: _passwordController,
+                          errorText: _passwordError,
+                          label: 'Password',
+                          isPasswordVisible: _isPasswordVisible,
+                          onToggle: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          }),
+                      const SizedBox(height: 20),
+                      _buildPasswordField(
+                          myController: _confirmPassController,
+                          errorText: _confirmPassError,
+                          label: 'Confirm Password',
+                          isPasswordVisible: _isConfirmPasswordVisible,
+                          onToggle: () {
+                            setState(() {
+                              _isConfirmPasswordVisible =
+                                  !_isConfirmPasswordVisible;
+                            });
+                          }),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _firstNameError = null;
+                                    _lastNameError = null;
+                                    _emailError = null;
+                                    _phoneError = null;
+                                    _usernameError = null;
+                                    _passwordError = null;
+                                    _confirmPassError = null;
+
+                                    if (_firstNameController.text
+                                        .trim()
+                                        .isEmpty) {
+                                      _firstNameError =
+                                          'First name is required';
+                                    }
+                                    if (_lastNameController.text
+                                        .trim()
+                                        .isEmpty) {
+                                      _lastNameError = 'Last name is required';
+                                    }
+                                    if (_emailController.text.trim().isEmpty) {
+                                      _emailError = 'Email is required';
+                                    }
+                                    if (_phoneController.text.trim().isEmpty) {
+                                      _phoneError = 'Phone is required';
+                                    }
+                                    if (_usernameController.text
+                                        .trim()
+                                        .isEmpty) {
+                                      _usernameError = 'Username is required';
+                                    }
+                                    if (_passwordController.text
+                                        .trim()
+                                        .isEmpty) {
+                                      _passwordError = 'Password is required';
+                                    }
+                                    if (_confirmPassController.text
+                                        .trim()
+                                        .isEmpty) {
+                                      _confirmPassError =
+                                          'Confirm Password is required';
+                                    }
+
+                                    if (_firstNameError == null &&
+                                        _lastNameError == null &&
+                                        _emailError == null &&
+                                        _phoneError == null &&
+                                        _usernameError == null &&
+                                        _passwordError == null &&
+                                        _confirmPassError == null) {
+                                      if (_passwordController.text.trim() !=
+                                          _confirmPassController.text.trim()) {
+                                        _confirmPassError =
+                                            'Passwords do not match';
+                                      } else {
+                                        //register user
+                                        registerUser();
+                                      }
+                                    }
+                                  });
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            elevation: 5,
+                          ),
+                          child: const Text(
+                            'Register',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Already have an account? ",
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.black54),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const Login()),
+                              );
+                            },
+                            child: const Text(
+                              'Login',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
-    );
+            if (isLoading)
+              const Center(
+                child: LoadingWidget(), // Show loading indicator
+              ),
+          ],
+        ));
   }
 
   Widget _buildTextField(

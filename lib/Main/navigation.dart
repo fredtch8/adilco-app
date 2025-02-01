@@ -1,3 +1,4 @@
+import 'package:adilco/Auth/login.dart';
 import 'package:flutter/material.dart';
 import 'dart:async'; // Import for Timer
 import 'profile.dart';
@@ -119,15 +120,21 @@ class _NavigationState extends State<Navigation> {
                   );
                 },
               ),
-              const ListTile(
-                leading: Icon(
+              ListTile(
+                leading: const Icon(
                   Icons.logout_rounded,
                   color: Colors.red,
                 ),
-                title: Text(
+                title: const Text(
                   'Logout',
                   style: TextStyle(fontSize: 18, color: Colors.black87),
                 ),
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Login()),
+                  );
+                },
               ),
             ],
           ),
@@ -156,7 +163,7 @@ class _NavigationState extends State<Navigation> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8.0),
                         image: DecorationImage(
-                          image: NetworkImage(sliderImages[index]),
+                          image: AssetImage(sliderImages[index]),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -284,6 +291,8 @@ class _NavigationState extends State<Navigation> {
                               'Chivas 18', 'images/chivas-18.jpeg'),
                           _buildProductItem(
                               'Terea Siver', 'images/terea-silver.jpeg'),
+                          _buildProductItem(
+                              'Terea Siver', 'images/terea-silver.jpeg'),
                         ],
                       ),
                     ),
@@ -385,7 +394,7 @@ class _NavigationState extends State<Navigation> {
                 borderRadius: BorderRadius.circular(
                     8), // Rounded corners for the image container
                 image: DecorationImage(
-                  image: NetworkImage(imageUrl), // Use NetworkImage for URLs
+                  image: AssetImage(imageUrl), // Use NetworkImage for URLs
                   fit: BoxFit
                       .cover, // Ensures the image covers the entire container
                 ),
