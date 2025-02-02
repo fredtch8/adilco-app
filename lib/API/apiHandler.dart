@@ -7,6 +7,7 @@ class ApiHandler {
   final String checkUri = "http://10.0.2.2:5093/api/Users/ForgetPassCheckUser";
   final String generateOtpUri = "http://10.0.2.2:5093/api/Otp/GenerateOTP";
   final String checkOtpUri = "http://10.0.2.2:5093/api/Otp/VerifyOTPResetPass";
+  final String loginUri = "http://10.0.2.2:5093/api/Users/Login";
 
   Future<http.Response> registerUser(Users user) async {
     final uri = Uri.parse(baseUri);
@@ -97,6 +98,27 @@ class ApiHandler {
       return http.Response('Error: $e', 500);
     }
 
+    return response;
+  }
+
+  Future<http.Response> login(String username, String password) async {
+    final uri = Uri.parse(loginUri);
+    http.Response? response;
+
+    try {
+      final requestBody =
+          json.encode({'USERNAME': username, 'PASSWORD': password});
+
+      response = await http.post(
+        uri,
+        headers: <String, String>{
+          'Content-type': 'application/json; charset=UTF-8'
+        },
+        body: requestBody,
+      );
+    } catch (e) {
+      return http.Response('Error: $e', 500);
+    }
     return response;
   }
 }

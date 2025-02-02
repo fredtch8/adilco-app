@@ -90,7 +90,7 @@ class _RegisterState extends State<Register> {
       // Handle unexpected errors like network issues or other exceptions
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('An error occurred: $e'),
+          content: Text('An error occurred: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
