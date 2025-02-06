@@ -6,7 +6,7 @@ import 'package:adilco/Auth/register.dart';
 import 'package:adilco/Main/home.dart';
 import 'package:adilco/loading.dart';
 import 'package:flutter/material.dart';
-//import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -27,45 +27,50 @@ class _LoginState extends State<Login> {
 
   ApiHandler apihandler = ApiHandler();
 
-  // void login() async {
-  //   setState(() {
-  //     isLoading = true; // Show loading indicator
-  //   });
-  //   try {
-  //     final response = await apihandler.login(
-  //         _usernameController.text, _passwordController.text);
+  Future<void> login() async {
+    setState(() {
+      isLoading = true; // Show loading indicator
+    });
 
-  //     if (response.statusCode == 200) {
-  //       var data = jsonDecode(response.body);
-  //       final token = data["token"];
+    try {
+      final response = await apihandler.login(
+          _usernameController.text, _passwordController.text);
 
-  //       SharedPreferences prefs = await SharedPreferences.getInstance();
-  //       await prefs.setString('auth_token', token);
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        final token = data["token"];
 
-  //       print(prefs.getString('auth_token'));
+        // ✅ Save token in SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', token);
 
-  //       // ✅ Navigate to the home screen
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => Home()),
-  //       );
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(
-  //           content: Text("Invalid username or password."),
-  //           backgroundColor: Colors.red,
-  //         ),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text("An error occurred: $e"),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   }
-  // }
+        print("Saved Token: ${prefs.getString('auth_token')}");
+
+        // ✅ Navigate to Home screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Home()),
+        );
+      } else {
+        showError("Invalid username or password.");
+      }
+    } catch (e) {
+      showError("An error occurred: $e");
+    } finally {
+      setState(() {
+        isLoading = false; // Hide loading indicator
+      });
+    }
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -232,12 +237,7 @@ class _LoginState extends State<Login> {
                                     if (_usernameErrorMsg == null &&
                                         _passwordErrorMsg == null) {
                                       //logiin operation api call
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const Home(),
-                                        ),
-                                      );
+                                      login();
                                     }
                                   });
                                 },
