@@ -6,51 +6,57 @@ import 'navigation.dart'; // Import your navigation file
 import '../API/apiHandler.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class Profile extends StatefulWidget {
-  const Profile({super.key});
+class ChangePassword extends StatefulWidget {
+  const ChangePassword({super.key});
 
   @override
-  State<Profile> createState() => _ProfileState();
+  State<ChangePassword> createState() => _ProfileState();
 }
 
-class _ProfileState extends State<Profile> {
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
+class _ProfileState extends State<ChangePassword> {
+  final TextEditingController _oldpassword = TextEditingController();
+  final TextEditingController _newpassword = TextEditingController();
+  final TextEditingController _confirmnewpass = TextEditingController();
 
-  String? _firstNameError;
-  String? _lastNameError;
-  String? _emailError;
-  String? _phoneError;
-  String? _usernameError;
+  String? _oldpasswordError;
+  String? _newpasswordError;
+  String? _confirmnewpassError;
 
   ApiHandler apihandler = ApiHandler();
 
-  @override
-  void initState() {
-    super.initState();
-    getUserInfo(); // Fetch user info when profile page loads
-  }
-
-  void getUserInfo() async {
+  void changePassword() async {
     final userId = await SecureStorage.read('userId');
     final token = await SecureStorage.read('auth_token');
 
-    final response = await apihandler.getUserInfo(int.parse(userId!), token);
+    final response = await apihandler.changePassword(
+        int.parse(userId!),
+        token,
+        _oldpassword.text.trim(),
+        _newpassword.text.trim(),
+        _confirmnewpass.text.trim());
 
     if (response.statusCode == 200) {
+      // ✅ Success: Show success message
+      showSuccess("Password changed successfully!");
+    } else {
+      // ❌ Failure: Show error message from API response
       var data = jsonDecode(response.body);
-
-      setState(() {
-        _usernameController.text = data['USERNAME'];
-        _firstNameController.text = data['FIRST_NAME'];
-        _lastNameController.text = data['LAST_NAME'];
-        _emailController.text = data['EMAIL'];
-        _phoneController.text = data['PHONE_NUMBER'];
-      });
+      String errorMessage = data['message'] ??
+          "Failed to change password."; // Handle 'message' key
+      showError(errorMessage);
     }
+  }
+
+  void showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
+    );
+  }
+
+  void showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
   }
 
   @override
@@ -58,7 +64,7 @@ class _ProfileState extends State<Profile> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Profile',
+          'Password Change',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.red[600],
@@ -92,7 +98,7 @@ class _ProfileState extends State<Profile> {
                 ),
                 const SizedBox(height: 40),
                 const Text(
-                  'Profile Details',
+                  'Change Password',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 24,
@@ -102,7 +108,7 @@ class _ProfileState extends State<Profile> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'Update your profile information below',
+                  'Update your password below',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -111,33 +117,21 @@ class _ProfileState extends State<Profile> {
                 ),
                 const SizedBox(height: 30),
                 _buildTextField(
-                  label: 'First Name',
-                  myController: _firstNameController,
-                  errorText: _firstNameError,
+                  label: 'Old Password',
+                  myController: _oldpassword,
+                  errorText: _oldpasswordError,
                 ),
                 const SizedBox(height: 20),
                 _buildTextField(
-                  label: 'Last Name',
-                  myController: _lastNameController,
-                  errorText: _lastNameError,
+                  label: 'New Password',
+                  myController: _newpassword,
+                  errorText: _newpasswordError,
                 ),
                 const SizedBox(height: 20),
                 _buildTextField(
-                  label: 'Email',
-                  myController: _emailController,
-                  errorText: _emailError,
-                ),
-                const SizedBox(height: 20),
-                _buildTextField(
-                  label: 'Phone',
-                  myController: _phoneController,
-                  errorText: _phoneError,
-                ),
-                const SizedBox(height: 20),
-                _buildTextField(
-                  label: 'Username',
-                  myController: _usernameController,
-                  errorText: _usernameError,
+                  label: 'Confirm Password',
+                  myController: _confirmnewpass,
+                  errorText: _confirmnewpassError,
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -145,40 +139,33 @@ class _ProfileState extends State<Profile> {
                   child: ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        _firstNameError = null;
-                        _lastNameError = null;
-                        _emailError = null;
-                        _phoneError = null;
-                        _usernameError = null;
+                        _oldpasswordError = null;
+                        _newpasswordError = null;
+                        _confirmnewpassError = null;
 
-                        if (_firstNameController.text.trim().isEmpty) {
-                          _firstNameError = 'First name is required';
+                        if (_oldpassword.text.trim().isEmpty) {
+                          _oldpasswordError = 'Old Password is required';
                         }
-                        if (_lastNameController.text.trim().isEmpty) {
-                          _lastNameError = 'Last name is required';
+                        if (_newpassword.text.trim().isEmpty) {
+                          _newpasswordError = 'New Password is required';
                         }
-                        if (_emailController.text.trim().isEmpty) {
-                          _emailError = 'Email is required';
-                        }
-                        if (_phoneController.text.trim().isEmpty) {
-                          _phoneError = 'Phone is required';
-                        }
-                        if (_usernameController.text.trim().isEmpty) {
-                          _usernameError = 'Username is required';
+                        if (_confirmnewpass.text.trim().isEmpty) {
+                          _confirmnewpassError =
+                              'Confirm new Password is required';
                         }
 
-                        if (_firstNameError == null &&
-                            _lastNameError == null &&
-                            _emailError == null &&
-                            _phoneError == null &&
-                            _usernameError == null) {
-                          // Update profile info logic
+                        if (_newpassword.text.trim() !=
+                            _confirmnewpass.text.trim()) {
+                          _confirmnewpassError = 'Passwords do not match';
+                        } else {
+                          //change pass call api
+                          changePassword();
                         }
                       });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
-                      foregroundColor: Colors.black,
+                      foregroundColor: const Color.fromARGB(255, 48, 45, 45),
                       padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),

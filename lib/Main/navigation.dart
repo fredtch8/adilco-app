@@ -1,7 +1,11 @@
+import 'package:adilco/API/apiHandler.dart';
+import 'package:adilco/Main/changePass.dart';
 import 'package:adilco/Auth/login.dart';
+import 'package:adilco/secureStorage.dart';
 import 'package:flutter/material.dart';
 import 'dart:async'; // Import for Timer
 import 'profile.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class Navigation extends StatefulWidget {
   const Navigation({super.key});
@@ -12,6 +16,29 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  ApiHandler apihandler = ApiHandler();
+
+  Future<String?> getToken() async {
+    return await SecureStorage.read('auth_token');
+  }
+
+  Future<void> logout() async {
+    String? token = await getToken();
+    final response = await apihandler.logout(token);
+    if (response.statusCode == 200) {
+      // Successfully logged out
+      print('Logout successful');
+      await SecureStorage.clear();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Login()),
+      );
+    } else {
+      // Error logging out
+      print('Error: ${response.body}');
+    }
+  }
 
   // Dummy data for the slider images
   final List<String> sliderImages = [
@@ -66,8 +93,8 @@ class _NavigationState extends State<Navigation> {
           'Home',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.red[600],
-        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFF5252),
+        foregroundColor: const Color(0xFFF5F5F5),
         centerTitle: true,
         elevation: 0.0,
         leading: IconButton(
@@ -81,7 +108,7 @@ class _NavigationState extends State<Navigation> {
         child: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFFFCE4EC), Color(0xFFF8BBD0)],
+              colors: [Color(0xFFF5F5F5), Color(0xFFF5F5F5)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -122,6 +149,23 @@ class _NavigationState extends State<Navigation> {
               ),
               ListTile(
                 leading: const Icon(
+                  Icons.lock,
+                  color: Colors.red,
+                ),
+                title: const Text(
+                  'Change Password',
+                  style: TextStyle(fontSize: 18, color: Colors.black87),
+                ),
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ChangePassword()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(
                   Icons.logout_rounded,
                   color: Colors.red,
                 ),
@@ -130,10 +174,7 @@ class _NavigationState extends State<Navigation> {
                   style: TextStyle(fontSize: 18, color: Colors.black87),
                 ),
                 onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const Login()),
-                  );
+                  logout();
                 },
               ),
             ],
@@ -143,7 +184,7 @@ class _NavigationState extends State<Navigation> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFCE4EC), Color(0xFFF8BBD0)],
+            colors: [Color(0xFFFCE4EC), Color(0xFFF5F5F5)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -159,9 +200,9 @@ class _NavigationState extends State<Navigation> {
                   itemCount: sliderImages.length,
                   itemBuilder: (context, index) {
                     return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                      margin: const EdgeInsets.symmetric(horizontal: 0.0),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
+                        borderRadius: BorderRadius.circular(0.0),
                         image: DecorationImage(
                           image: AssetImage(sliderImages[index]),
                           fit: BoxFit.cover,
@@ -202,20 +243,20 @@ class _NavigationState extends State<Navigation> {
                     padding: EdgeInsets.all(16.0),
                     child: Row(
                       children: [
-                        Icon(Icons.star, color: Colors.amber, size: 40),
+                        Icon(Icons.waving_hand, color: Colors.amber, size: 40),
                         SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Loyalty Points',
+                              'Welcome, Freddy!',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
-                              '500 Points',
+                              'Loyalty Points: 500',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey,

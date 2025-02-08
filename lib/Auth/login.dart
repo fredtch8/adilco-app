@@ -5,8 +5,9 @@ import 'package:adilco/Auth/forgotPass.dart';
 import 'package:adilco/Auth/register.dart';
 import 'package:adilco/Main/home.dart';
 import 'package:adilco/loading.dart';
+import 'package:adilco/secureStorage.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -39,12 +40,14 @@ class _LoginState extends State<Login> {
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         final token = data["token"];
+        final userId = data["userId"];
 
-        // ✅ Save token in SharedPreferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', token);
+        // ✅ Save token in Flutter Secure Storage
+        await SecureStorage.write('auth_token', token);
+        await SecureStorage.write('userId', userId.toString());
 
-        print("Saved Token: ${prefs.getString('auth_token')}");
+        print("Saved Token: ${await SecureStorage.read('auth_token')}");
+        print("Saved Token: ${await SecureStorage.read('userId')}");
 
         // ✅ Navigate to Home screen
         Navigator.pushReplacement(
